@@ -19,6 +19,12 @@ IS
     vQTCLIPCCLIENT1 NUMBER;
     vQTCLIPCCLIENT2 NUMBER;
     vQTCLIPCCLIENT3 NUMBER;
+    vCODUSUR1 PCCLIENT.CODUSUR1%TYPE;
+    vCODUSUR2 PCCLIENT.CODUSUR2%TYPE;
+    vCODUSUR3 PCCLIENT.CODUSUR3%TYPE;
+    vQTCLI3315RCA NUMBER;
+    vQTCLI3315PAR1 NUMBER;
+    vQTCLI3315PAR2 NUMBER;
     vCONTADOR_ NUMBER := 0;
     vTEM_ NUMBER := 0;
     vCAMPOOBS PCUSUARI.OBSFORCAVENDAS4%TYPE;
@@ -226,6 +232,7 @@ BEGIN
                         COMMIT;
                     END IF;
 
+                    --PAR2
                     IF vQTCLIPAR2 = 0 THEN
                         IF NVL(vCODUSURPAR2, 0) NOT IN (0, pCODUSUR, vCODUSURPAR, 9999) THEN
                             --VERIFICANDO CAMPOS DO CLIENTE NA PCCLIENT, SE EXISTE RCA INATIVO PARA SEREM SUBISTITUIDOS  
@@ -237,6 +244,7 @@ BEGIN
 
                             SELECT COUNT(1) INTO vQTCLIPCCLIENT3 FROM PCCLIENT
                             WHERE CODCLI=pCODCLI AND CODUSUR1 IN (SELECT CODUSUR FROM PCUSUARI WHERE DTTERMINO IS NULL) AND CODUSUR3<>pCODUSURSUB;
+
 
                             IF vQTCLIPCCLIENT1 = 0 AND
                                 SUBSTR(pCAMPOS, 1, 1) = 'S' THEN
@@ -266,6 +274,128 @@ BEGIN
               RAISE_APPLICATION_ERROR (-20000, vMESS);
 
             END IF;
+
+        ELSE
+            IF vQTCLI <= 0 THEN
+                IF vMESS = 'SERRO' THEN
+                    vMESS := 'Não existe clientes para esse RCA';
+                ELSE
+                    vMESS := vMESS || CHR(10) || 'Não existe clientes para esse RCA';
+                END IF;
+
+            END IF;
+
+            ID vMESS = 'SERRO' THEN
+                --BUSCANDO CAMPOS RCA DO CLIENTE NA PCLCIENT
+                SELECT CODUSUR1 INTO vCODUSUR1 FROM PCCLIENT
+                WHERE CODCLI = pCODCLI;
+
+                SELECT CODUSUR2 INTO vCODUSUR2 FROM PCCLIENT
+                WHERE CODCLI = pCODCLI;
+
+                SELECT CODUSUR3 INTO vCODUSUR3 FROM PCCLIENT
+                WHERE CODCLI = pCODCLI;
+
+                --CONTANDO CLIENTES NA 3315
+                SELECT COUNT(I) INTO vQTCLI3315RCA FROM PCUSURCLI
+                WHERE CODCLI = pCODCLI
+                AND COUSUR = pCODUSUR;
+
+                IF NVL(vCODUSURPAR, 0) NOT IN (9999, 0) THEN
+                    SELECT COUNT(1) INTO vQTCLI3315PAR1 FROM PCUSURCLI
+                    WHERE CODCLI = pCODCLI
+                    AND CODUSUR = vCODUSURPAR;
+
+                END IF;
+
+                IF NVL(vCODUSURPAR2, 0) NOT IN (9999, 0) THEN
+                    SELECT COUNT(1) INTO vQTCLI3315PAR2 FROM PCUSURCLI
+                    WHERE CODCLI = pCODCLI
+                    AND CODUSUR = vCODUSURPAR2;
+
+                END IF;
+
+                --TIRANDO O CLIENTE DO RCA PRINCIPAL
+                IF vCODUSUR1 = pCODUSUR THEN
+                    UPDATE PCCLIENT SET CODUSUR1 = pCODUSURSUB
+                    WHERE CODCLI = pCODCLI;
+
+                END IF;
+
+                IF (vCODUSUR2 = pCODUSUR) AND
+                    (vCODUSUR1 IS NOT NULL) THEN
+                        UPDATE PCCLIENT SET CODUSUR2 = NULL
+                        WHERE CODCLI = pCODCLI;
+
+                ELSE
+                    IF vCODUSUR2 = pCODUSUR THEN
+                        UPDATE PCCLIENT SET CODUSUR2 = pCODUSURSUB
+                        WHERE CODCLI = pCODCLI;
+
+                END IF;
+
+                IF (vCODUSUR3 = pCODUSUR) AND
+                    (vCODUSUR1 IS NOT NULL) THEN
+                        UPDATE PCCLIENT SET CODUSUR3 = NULL
+                        WHERE CODCLI = pCODCLI;
+
+                ELSE
+                    IF vCODUSUR3 = pCODUSUR THEN
+                        UPDATE PCCLIENT SET CODUSUR3 = pCODUSURSUB
+                        WHERE CODCLI = pCODCLI;
+
+                END IF;
+                COMMIT;
+
+                --TIRANDO CLIENTE DO RCA SUBSTITUTO 1
+                IF pUTILIZAPAR = 'S' THEN
+                    IF vCODUSUR1 = vCODUSURPAR THEN
+                        IF NVL(vCODUSURPAR, 0) NOT IN (0, pCODUSUR, pCODUSURSUB, 9999) THEN
+                            SELECT CODUSUR1 INTO vCODUSUR1 FROM PCCLIENT
+                            WHERE CODCLI = pCODCLI;
+
+                            SELECT CODUSUR2 INTO vCODUSUR2 FROM PCCLIENT
+                            WHERE CODCLI = pCODCLI;
+
+                            SELECT CODUSUR3 INTO vCODUSUR3 FROM PCCLIENT
+                            WHERE CODCLI = pCODCLI;
+
+                            IF vCODUSUR1 = vCODUSURPAR THEN
+                                UPDATE PCCLIENT SET CODUSUR1 = pCODUSURSUB
+                                WHERE CODCLI = pCODCLI;
+
+                            END IF;
+
+                            IF (vCODUSUR2 = vCODUSURPAR) AND
+                                (vCODUSUR1 IS NOT NULL) THEN
+                                    UPDATE PCCLIENT SET CODUSUR2 = NULL
+                                    WHERE CODCLI = pCODCLI;
+
+                            ELSE
+                                IF vCODUSUR2 = vCODUSURPAR THEN
+                                    UPDATE PCCLIENT SET CODUSUR2 = pCODUSURSUB
+                                    WHERE CODCLI = pCODCLI;
+                                
+                                END IF;
+                            END IF;
+
+                            IF (vCODUSUR3 = vCODUSURPAR2) AND
+                                (vCODUSUR1 IS NOT NULL) THEN
+                                    UPDATE PCCLIENT SET CODUSUR3 = NULL
+                                    WHERE CODCLI = pCODCLI;
+
+                            ELSE
+                                IF vCODUSUR3 = vCODUSURPAR2 THEN
+                                    UPDATE PCCLIENT SET CODUSUR3 = pCODUSURSUB
+                                    WHERE CODCLI = pCODCLI;
+                                END IF;
+
+                            END IF;
+                        END IF;
+                    END IF
+
+                END IF
+
         END IF;
     END IF;
 END;
