@@ -1,7 +1,7 @@
 from msilib import text
 from tela import Ui_tela
 from PyQt5 import QtCore, QtGui, QtWidgets
-#import cx_Oracle
+import cx_Oracle
 import sys
 import os
 
@@ -10,6 +10,34 @@ class tela_princ(QtWidgets.QApplication, Ui_tela):
     def __init__(self):
         super().__init__()
         self.setup(self)
+
+#PARAMETROS PARA CONEXAO COM O BANCO
+with open("conexaobd.txt", 'r') as conexaobd:
+    conn_linhas = conexaobd.readlines()
+    senhabd = conn_linhas[0].replace('\n', '')
+    aliasbd = conn_linhas[1].replace('\n', '')
+    usuariobd = conn_linhas[2].replace('\n', '')
+
+#CONEXAO COM O BANCO DE DADOS
+class conexao():
+    def __init__(self, comando, alias=aliasbd, user=usuariobd, password=senhabd):
+        self.conn = cx_Oracle.connect(user=user, password=password, dsn=alias)
+        self.comando = comando
+
+    def insert_update(self):
+        pass
+
+    def fetchall(self):
+        cursor = self.conn.cursor()
+        consulta = cursor.execute(self.comando)
+        consulta_fe = consulta.fetchall()
+        return consulta_fe
+    
+    def fetchone(self):
+        cursor = self.conn.cursor()
+        consulta = cursor.execute(self.comando)
+        consulta_fo = consulta.fetchone()
+        return consulta_fo
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -78,6 +106,7 @@ def carregar_spool_f():
         #RCA SUBSTITUO
         if rcasub.isnumeric():
             uitela.rcasub_ln.setText(str(rcasub))
+
 
         #CHECK BOX'S DOS CAMPOS DE RCA E UTILIZA PAR
         if rca1 == 's':
@@ -161,6 +190,38 @@ def checar_spool_f():
     uitela.fechar_btt.clicked.connect(salvar_spool_f)
     uitela.fechar_btt.clicked.connect(tela.close)
 
+#TESTANDO CONEXÃO COM O BANCO
+#print(conexao("SELECT matricula FROM PCEMPR WHERE ROWNUM < 2").fetchall())
+    
+#ATUALIZANDO DADOS DA LINE EDIT
+def atualizar_ln_f():
+    def atualizar_f(campo1, campo2, tabela, cod, lineedit):
+        consulta = []
+        if cod.isnumeric():
+            consulta = conexao(f"""SELECT {campo1}, {campo2} FROM {tabela} WHERE {campo1} = {int(cod)}""").fetchone()
+            if consulta == None:
+                consulta = []
+
+        if len(consulta) > 0:
+            lineedit.setText(consulta[1])
+            lineedit.setStyleSheet("Background-color: rgb(190, 190, 190);")
+            lineedit.setReadOnly(True)
+
+        else:
+            lineedit.setText('')
+            lineedit.setStyleSheet("Background color: rgb(255, 255, 255);")
+            lineedit.setReadOnly(False)
+
+    uitela.rca_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rca_ln.text(), uitela.rca_nome_ln))
+    uitela.rcasub_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rcasub_ln.text(), uitela.rcasub_nomeln))
+    uitela.codcli_ln.editingFinished.connect(lambda: atualizar_f('CODCLI', 'CLIENTE', 'PCCLIENT', uitela.codcli_ln.text(), uitela.cliente_ln))
+    #PESQUISANDO POR CNPJ
+    #uitela.cnpjcli_ln.editingFinished.connect(lambda: atualizar_f('CGCENT', 'CLIENTE', 'PCCLIENT', uitela.cnpjcli_ln.text().replace('/', '').replace('-', '').replace('.', ''), uitela.cliente_ln))
+
+    if uitela.rcasub_ln.text() != None:
+        if uitela.rcasub_ln.text().isnumeric():
+            atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rcasub_ln.text(), uitela.rcasub_nomeln)
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     #TELA PRINCIPAL
@@ -170,4 +231,5 @@ if __name__ == "__main__":
     tela.show()
     #FUNCOES
     checar_spool_f()
+    atualizar_ln_f()
     sys.exit(app.exec_())
