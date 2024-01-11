@@ -25,7 +25,10 @@ class conexao():
         self.comando = comando
 
     def insert_update(self):
-        pass
+        cursor = self.conn.cursor()
+        cursor.execute(self.comando)
+        self.conn.commit()
+        self.conn.close()
 
     def fetchall(self):
         cursor = self.conn.cursor()
@@ -38,6 +41,11 @@ class conexao():
         consulta = cursor.execute(self.comando)
         consulta_fo = consulta.fetchone()
         return consulta_fo
+    
+    def call_proc_5(self):
+        cursor = self.conn.cursor()
+        #codigo = cursor.callproc(self.comando, [par1, par2, par3, par4, par5])
+        cursor.callproc('AA_MVSIS_ADDREMOVECLIENT', ('a', 1, 17088, 175, 'ssn'))
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -210,7 +218,7 @@ def atualizar_ln_f():
         else:
             lineedit.setText('')
             lineedit.setStyleSheet("Background color: rgb(255, 255, 255);")
-            lineedit.setReadOnly(False)
+            lineedit.setReadOnly(True)
 
     uitela.rca_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rca_ln.text(), uitela.rca_nome_ln))
     uitela.rcasub_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rcasub_ln.text(), uitela.rcasub_nomeln))
@@ -222,6 +230,66 @@ def atualizar_ln_f():
         if uitela.rcasub_ln.text().isnumeric():
             atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rcasub_ln.text(), uitela.rcasub_nomeln)
 
+def executar_procedure_f():
+    #CRIANDO VARIAVEIS
+    campos = ''
+    acao = ''
+    validacao_cli = ''
+    rca1 = uitela.rca_ln.text()
+    rca_sub = uitela.rcasub_ln.text()
+    codcli = ''
+    par = ''
+    campos_list = [uitela.rca1_302_cbox.isChecked(), uitela.rca2_302_cbox.isChecked(), uitela.rca3_302_cbox.isChecked()]
+    
+    if uitela.add_rbtt.isChecked():
+        acao = 'a'
+
+    else:
+        acao = 'r'
+
+    if uitela.codcli_rbtt.isChecked():
+        validacao_cli = 'cod'
+        codcli = uitela.codcli_ln.text()
+
+    else:
+        validacao_cli = 'cnpj'
+        codcli = uitela.cnpjcli_ln.text()
+
+    if uitela.util_par_cbox.isChecked():
+        par = 's'
+
+    else:
+        par = 'n'
+
+    for i in campos_list:
+        if i == True:
+            campos += 's'
+
+        else:
+            campos += 'n'
+
+    if '' not in (uitela.rca_nome_ln.text(), uitela.rcasub_nomeln.text(), uitela.cliente_ln.text()):
+        try:
+            #conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
+            #conexao('AA_MVSIS_ADDREMOVECLIENT').call_proc_5(acao, rca1, codcli, rca_sub, campos)
+            #conexao("").call_proc_5()
+            #with open("conexaobd.txt", 'r') as conexaobd:
+            #    conn_linhas = conexaobd.readlines()
+            #    senhabd = conn_linhas[0].replace('\n', '')
+            #    aliasbd = conn_linhas[1].replace('\n', '')
+            #    usuariobd = conn_linhas[2].replace('\n', '')
+
+            with cx_Oracle.connect(user=usuariobd, password=senhabd, dsn=aliasbd) as conexao:
+                cursor = conexao.cursor()
+                texto = 'AA_MVSIS_ADDREMOVECLIENT'
+                cursor.callproc('aa_mvsis_addremoveclient', ['a', 1, 17088, 175, 'ssn'])
+                #cursor.close()
+                conexao.close()
+            
+        except Exception as erro:
+            print('Um erro ocorreu: ', erro)
+         
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     #TELA PRINCIPAL
@@ -232,4 +300,5 @@ if __name__ == "__main__":
     #FUNCOES
     checar_spool_f()
     atualizar_ln_f()
+    uitela.executar_btt.clicked.connect(executar_procedure_f)
     sys.exit(app.exec_())
