@@ -271,6 +271,7 @@ def executar_procedure_f():
     if '' not in (uitela.rca_nome_ln.text(), uitela.rcasub_nomeln.text(), uitela.cliente_ln.text()):
         try:
             #conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
+            print('deu certo')
             #conexao('AA_MVSIS_ADDREMOVECLIENT').call_proc_5(acao, rca1, codcli, rca_sub, campos)
             #conexao("").call_proc_5()
             #with open("conexaobd.txt", 'r') as conexaobd:
