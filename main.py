@@ -42,10 +42,11 @@ class conexao():
         consulta_fo = consulta.fetchone()
         return consulta_fo
     
-    def call_proc_5(self):
+    def call_proc_5(self, par1, par2, par3, par4, par5):
         cursor = self.conn.cursor()
         #codigo = cursor.callproc(self.comando, [par1, par2, par3, par4, par5])
         cursor.callproc('AA_MVSIS_ADDREMOVECLIENT', ('a', 1, 17088, 175, 'ssn'))
+        self.conn.close()
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -270,9 +271,10 @@ def executar_procedure_f():
 
     if '' not in (uitela.rca_nome_ln.text(), uitela.rcasub_nomeln.text(), uitela.cliente_ln.text()):
         try:
-            #conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
-            print('deu certo')
+           conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
             #conexao('AA_MVSIS_ADDREMOVECLIENT').call_proc_5(acao, rca1, codcli, rca_sub, campos)
+            #conexao(f"""INSERT INTO PCUSURCLI(CODUSUR, CoDCLI) VALUES ({int(rca1)}, {int(codcli)})""").insert_update()
+           print('CLIENTE ADICIONADO COM SUCESSO')
             #conexao("").call_proc_5()
             #with open("conexaobd.txt", 'r') as conexaobd:
             #    conn_linhas = conexaobd.readlines()
@@ -280,12 +282,12 @@ def executar_procedure_f():
             #    aliasbd = conn_linhas[1].replace('\n', '')
             #    usuariobd = conn_linhas[2].replace('\n', '')
 
-            with cx_Oracle.connect(user=usuariobd, password=senhabd, dsn=aliasbd) as conexao:
-                cursor = conexao.cursor()
-                texto = 'AA_MVSIS_ADDREMOVECLIENT'
-                cursor.callproc('aa_mvsis_addremoveclient', ['a', 1, 17088, 175, 'ssn'])
-                #cursor.close()
-                conexao.close()
+            #with cx_Oracle.connect(user=usuariobd, password=senhabd, dsn=aliasbd) as conexao:
+            #    cursor = conexao.cursor()
+            #    texto = 'AA_MVSIS_ADDREMOVECLIENT'
+            #    cursor.callproc('aa_mvsis_addremoveclient', ['a', 1, 17088, 175, 'ssn'])
+            #    #cursor.close()
+            #    conexao.close()
             
         except Exception as erro:
             print('Um erro ocorreu: ', erro)
