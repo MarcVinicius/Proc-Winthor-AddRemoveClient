@@ -45,8 +45,10 @@ class conexao():
     def call_proc_5(self, par1, par2, par3, par4, par5):
         cursor = self.conn.cursor()
         #codigo = cursor.callproc(self.comando, [par1, par2, par3, par4, par5])
-        cursor.callproc('AA_MVSIS_ADDREMOVECLIENT', ('a', 1, 17088, 175, 'ssn'))
+        cursor.callproc('AA_MVSIS_ADDREMOVECLIENT', ('A', 1, 31550, 175, 'ssn'))
+        cursor.close()
         self.conn.close()
+
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -271,9 +273,10 @@ def executar_procedure_f():
 
     if '' not in (uitela.rca_nome_ln.text(), uitela.rcasub_nomeln.text(), uitela.cliente_ln.text()):
         try:
-           conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
+           #conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
             #conexao('AA_MVSIS_ADDREMOVECLIENT').call_proc_5(acao, rca1, codcli, rca_sub, campos)
             #conexao(f"""INSERT INTO PCUSURCLI(CODUSUR, CoDCLI) VALUES ({int(rca1)}, {int(codcli)})""").insert_update()
+           conexao('teste').call_proc_5('a', 1, 17088, 175, 'ssn')
            print('CLIENTE ADICIONADO COM SUCESSO')
             #conexao("").call_proc_5()
             #with open("conexaobd.txt", 'r') as conexaobd:
