@@ -285,7 +285,7 @@ BEGIN
 
             END IF;
 
-            ID vMESS = 'SERRO' THEN
+            IF vMESS = 'SERRO' THEN
                 --BUSCANDO CAMPOS RCA DO CLIENTE NA PCLCIENT
                 SELECT CODUSUR1 INTO vCODUSUR1 FROM PCCLIENT
                 WHERE CODCLI = pCODCLI;
@@ -301,14 +301,14 @@ BEGIN
                 WHERE CODCLI = pCODCLI
                 AND COUSUR = pCODUSUR;
 
-                IF NVL(vCODUSURPAR, 0) NOT IN (9999, 0) THEN
+                IF NVL(vCODUSURPAR, 0) NOT IN (9999, 0, pCODUSURSUB) THEN
                     SELECT COUNT(1) INTO vQTCLI3315PAR1 FROM PCUSURCLI
                     WHERE CODCLI = pCODCLI
                     AND CODUSUR = vCODUSURPAR;
 
                 END IF;
 
-                IF NVL(vCODUSURPAR2, 0) NOT IN (9999, 0) THEN
+                IF NVL(vCODUSURPAR2, 0) NOT IN (9999, 0, pCODUSURSUB) THEN
                     SELECT COUNT(1) INTO vQTCLI3315PAR2 FROM PCUSURCLI
                     WHERE CODCLI = pCODCLI
                     AND CODUSUR = vCODUSURPAR2;
