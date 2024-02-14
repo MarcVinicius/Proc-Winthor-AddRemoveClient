@@ -297,104 +297,190 @@ BEGIN
                 WHERE CODCLI = pCODCLI;
 
                 --CONTANDO CLIENTES NA 3315
-                SELECT COUNT(I) INTO vQTCLI3315RCA FROM PCUSURCLI
+                SELECT COUNT(1) INTO vQTCLI3315RCA FROM PCUSURCLI
                 WHERE CODCLI = pCODCLI
-                AND COUSUR = pCODUSUR;
-
-                IF NVL(vCODUSURPAR, 0) NOT IN (9999, 0, pCODUSURSUB) THEN
-                    SELECT COUNT(1) INTO vQTCLI3315PAR1 FROM PCUSURCLI
-                    WHERE CODCLI = pCODCLI
-                    AND CODUSUR = vCODUSURPAR;
-
-                END IF;
-
-                IF NVL(vCODUSURPAR2, 0) NOT IN (9999, 0, pCODUSURSUB) THEN
-                    SELECT COUNT(1) INTO vQTCLI3315PAR2 FROM PCUSURCLI
-                    WHERE CODCLI = pCODCLI
-                    AND CODUSUR = vCODUSURPAR2;
-
-                END IF;
+                AND CODUSUR = pCODUSUR;
 
                 --TIRANDO O CLIENTE DO RCA PRINCIPAL
+                ----CAMPO CODUSUR1
                 IF vCODUSUR1 = pCODUSUR THEN
                     UPDATE PCCLIENT SET CODUSUR1 = pCODUSURSUB
                     WHERE CODCLI = pCODCLI;
 
                 END IF;
 
+                ----CAMPO CODUSUR2 SE O CAMPO CODUSUR1 TIVER PREENCHIDO
                 IF (vCODUSUR2 = pCODUSUR) AND
                     (vCODUSUR1 IS NOT NULL) THEN
                         UPDATE PCCLIENT SET CODUSUR2 = NULL
                         WHERE CODCLI = pCODCLI;
 
+                ----CAMPO CODUSUR2 SE O CAMPO CODUSUR1 ESTIVER VAZIO
                 ELSE
                     IF vCODUSUR2 = pCODUSUR THEN
-                        UPDATE PCCLIENT SET CODUSUR2 = pCODUSURSUB
+                        UPDATE PCCLIENT SET CODUSUR2 = NULL, CODUSUR1 = pCODUSURSUB
                         WHERE CODCLI = pCODCLI;
 
+                    END IF;
                 END IF;
 
+                ----CAMPO CODUSUR3 SE O CAMPO CODUSUR1 TIVER PREENCHIDO
                 IF (vCODUSUR3 = pCODUSUR) AND
                     (vCODUSUR1 IS NOT NULL) THEN
                         UPDATE PCCLIENT SET CODUSUR3 = NULL
                         WHERE CODCLI = pCODCLI;
 
+                ----CAMPO CODUSUR3 SE O CAMPO CODUSUR1 ESTIVER VAZIO
                 ELSE
                     IF vCODUSUR3 = pCODUSUR THEN
-                        UPDATE PCCLIENT SET CODUSUR3 = pCODUSURSUB
+                        UPDATE PCCLIENT SET CODUSUR3 = NULL, CODUSUR1 =pCODUSURSUB
                         WHERE CODCLI = pCODCLI;
 
+                    END IF;
+                END IF;
+
+                --TIRANDO O CLIENTE DA 3315
+                IF NVL(vQTCLI3315RCA, 0) > 0 THEN
+                    DELETE FROM PCUSURCLI
+                    WHERE CODCLI = pCODCLI
+                    AND CODUSUR = pCODUSUR;
+                
                 END IF;
                 COMMIT;
 
                 --TIRANDO CLIENTE DO RCA SUBSTITUTO 1
                 IF pUTILIZAPAR = 'S' THEN
-                    IF vCODUSUR1 = vCODUSURPAR THEN
-                        IF NVL(vCODUSURPAR, 0) NOT IN (0, pCODUSUR, pCODUSURSUB, 9999) THEN
-                            SELECT CODUSUR1 INTO vCODUSUR1 FROM PCCLIENT
+                    --REMOVENDO DO O RCA PAR1
+                    IF NVL(vCODUSURPAR, 0) NOT IN (0, pCODUSUR, pCODUSURSUB, 9999) THEN
+                        --BUSCANDO CAMPOS RCA DA PCCLIENT
+                        SELECT CODUSUR1 INTO vCODUSUR1 FROM PCCLIENT
+                        WHERE CODCLI = pCODCLI;
+
+                        SELECT CODUSUR2 INTO vCODUSUR2 FROM PCCLIENT
+                        WHERE CODCLI = pCODCLI;
+
+                        SELECT CODUSUR3 INTO vCODUSUR3 FROM PCCLIENT
+                        WHERE CODCLI = pCODCLI;
+
+                        --CONTANDO CLIENTES NA 3315
+                        SELECT COUNT(1) INTO vQTCLI3315PAR1 FROM PCUSURCLI
+                        WHERE CODCLI = pCODCLI
+                        AND CODUSUR = vCODUSURPAR;
+
+                        --CAMPO CODUSUR1
+                        IF vCODUSUR1 = vCODUSURPAR THEN
+                            UPDATE PCCLIENT SET CODUSUR1 = pCODUSURSUB
                             WHERE CODCLI = pCODCLI;
 
-                            SELECT CODUSUR2 INTO vCODUSUR2 FROM PCCLIENT
-                            WHERE CODCLI = pCODCLI;
+                        END IF;
 
-                            SELECT CODUSUR3 INTO vCODUSUR3 FROM PCCLIENT
-                            WHERE CODCLI = pCODCLI;
-
-                            IF vCODUSUR1 = vCODUSURPAR THEN
-                                UPDATE PCCLIENT SET CODUSUR1 = pCODUSURSUB
+                        ----CAMPO CODUSUR2 SE O CAMPO CODUSUR1 TIVER PREENCHIDO
+                        IF (vCODUSUR2 = vCODUSURPAR) AND
+                            (vCODUSUR1 IS NOT NULL) THEN
+                                UPDATE PCCLIENT SET CODUSUR2 = NULL
                                 WHERE CODCLI = pCODCLI;
 
-                            END IF;
-
-                            IF (vCODUSUR2 = vCODUSURPAR) AND
-                                (vCODUSUR1 IS NOT NULL) THEN
-                                    UPDATE PCCLIENT SET CODUSUR2 = NULL
-                                    WHERE CODCLI = pCODCLI;
-
-                            ELSE
-                                IF vCODUSUR2 = vCODUSURPAR THEN
-                                    UPDATE PCCLIENT SET CODUSUR2 = pCODUSURSUB
-                                    WHERE CODCLI = pCODCLI;
-                                
-                                END IF;
-                            END IF;
-
-                            IF (vCODUSUR3 = vCODUSURPAR2) AND
-                                (vCODUSUR1 IS NOT NULL) THEN
-                                    UPDATE PCCLIENT SET CODUSUR3 = NULL
-                                    WHERE CODCLI = pCODCLI;
-
-                            ELSE
-                                IF vCODUSUR3 = vCODUSURPAR2 THEN
-                                    UPDATE PCCLIENT SET CODUSUR3 = pCODUSURSUB
-                                    WHERE CODCLI = pCODCLI;
-                                END IF;
-
+                        ----CAMPO CODUSUR2 SE O CAMPO CODUSUR1 TIVER VAZIO
+                        ELSE
+                            IF vCODUSUR2 = vCODUSURPAR THEN
+                                UPDATE PCCLIENT SET CODUSUR2 = NULL, CODUSUR1 = pCODUSURSUB
+                                WHERE CODCLI = pCODCLI;
+                            
                             END IF;
                         END IF;
-                    END IF
 
-                END IF
+                        ----CAMPO CODUSUR3 SE O CAMPO CODUSUR1 TIVER PREENCHIDO
+                        IF (vCODUSUR3 = vCODUSURPAR) AND
+                            (vCODUSUR1 IS NOT NULL) THEN
+                                UPDATE PCCLIENT SET CODUSUR3 = NULL
+                                WHERE CODCLI = pCODCLI;
+
+                        ----CAMPO CODUSUR3 SE O CAMPO CODUSUR1 TIVER VAZIO
+                        ELSE
+                            IF vCODUSUR3 = vCODUSURPAR THEN
+                                UPDATE PCCLIENT SET CODUSUR3 = NULL, CODUSUR1 = pCODUSURSUB
+                                WHERE CODCLI = pCODCLI;
+                            END IF;
+
+                        END IF;
+
+                        --TIRANDO DA 3315
+                        IF NVL(vQTCLI3315PAR1, 0) > 0 THEN
+                            DELETE FROM PCUSURCLI
+                            WHERE CODCLI = pCODCLI
+                            AND CODUSUR = vCODUSURPAR;
+
+                        END IF;
+                        COMMIT;
+                    END IF;
+
+                    --REMOVENDO DO RCA PAR 2
+                    IF NVL(vCODUSURPAR2, 0) NOT IN (0, pCODUSUR, pCODUSURSUB, 9999) THEN
+                        --BUSCANDO CAMPOS RCA DA PCCLIENT
+                        SELECT CODUSUR1 INTO vCODUSUR1 FROM PCCLIENT
+                        WHERE CODCLI = pCODCLI;
+
+                        SELECT CODUSUR2 INTO vCODUSUR2 FROM PCCLIENT
+                        WHERE CODCLI = pCODCLI;
+
+                        SELECT CODUSUR3 INTO vCODUSUR3 FROM PCCLIENT
+                        WHERE CODCLI = pCODCLI;
+
+                        --CONTANDO CLIENTES NA 3315
+                        SELECT COUNT(1) INTO vQTCLI3315PAR2 FROM PCUSURCLI
+                        WHERE CODCLI = pCODCLI
+                        AND CODUSUR = vCODUSURPAR2;
+
+                        --CAMPO CODUSUR1
+                        IF vCODUSUR1 = vCODUSURPAR2 THEN
+                            UPDATE PCCLIENT SET CODUSUR1 = pCODUSURSUB
+                            WHERE CODCLI = pCODCLI;
+
+                        END IF;
+
+                        ----CAMPO CODUSUR2 SE O CAMPO CODUSUR1 TIVER PREENCHIDO
+                        IF (vCODUSUR2 = vCODUSURPAR2) AND
+                            (vCODUSUR1 IS NOT NULL) THEN
+                                UPDATE PCCLIENT SET CODUSUR2 = NULL
+                                WHERE CODCLI = pCODCLI;
+
+                        ----CAMPO CODUSUR2 SE O CAMPO CODUSUR1 TIVER VAZIO
+                        ELSE
+                            IF vCODUSUR2 = vCODUSURPAR2 THEN
+                                UPDATE PCCLIENT SET CODUSUR2 = NULL, CODUSUR1 = pCODUSURSUB
+                                WHERE CODCLI = pCODCLI;
+                            
+                            END IF;
+                        END IF;
+
+                        ----CAMPO CODUSUR3 SE O CAMPO CODUSUR1 TIVER PREENCHIDO
+                        IF (vCODUSUR3 = vCODUSURPAR2) AND
+                            (vCODUSUR1 IS NOT NULL) THEN
+                                UPDATE PCCLIENT SET CODUSUR3 = NULL
+                                WHERE CODCLI = pCODCLI;
+
+                        ----CAMPO CODUSUR3 SE O CAMPO CODUSUR1 TIVER VAZIO
+                        ELSE
+                            IF vCODUSUR3 = vCODUSURPAR2 THEN
+                                UPDATE PCCLIENT SET CODUSUR3 = NULL, CODUSUR1 = pCODUSURSUB
+                                WHERE CODCLI = pCODCLI;
+                            END IF;
+
+                        END IF;
+
+                        --TIRANDO DA 3315
+                        IF NVL(vQTCLI3315PAR2, 0) > 0 THEN
+                            DELETE FROM PCUSURCLI
+                            WHERE CODCLI = pCODCLI
+                            AND CODUSUR = vCODUSURPAR2;
+
+                        END IF;
+                        COMMIT;
+                    END IF;
+
+                END IF;
+
+            END IF;
 
         END IF;
     END IF;
