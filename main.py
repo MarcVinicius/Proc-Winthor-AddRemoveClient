@@ -1,12 +1,13 @@
 from msilib import text
 from tela import Ui_tela
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 import cx_Oracle
 import sys
 import os
 
 #Classes telas
-class tela_princ(QtWidgets.QApplication, Ui_tela):
+class tela_princ(QtWidgets.QApplication, QtWidgets.QWidget, Ui_tela):
     def __init__(self):
         super().__init__()
         self.setup(self)
@@ -17,6 +18,25 @@ with open("conexaobd.txt", 'r') as conexaobd:
     senhabd = conn_linhas[0].replace('\n', '')
     aliasbd = conn_linhas[1].replace('\n', '')
     usuariobd = conn_linhas[2].replace('\n', '')
+
+#TELA DE MENSAGENS(MESSAGE BOX)
+class mess_box:
+    def __init__(self, titulo, texto, cor_jan, cor_btt):
+        self.titulo = titulo
+        self.texto = texto
+        self.cor_jan = cor_jan#(R, G, B)
+        self.cor_btt = cor_btt
+        self.set_color()
+
+    def set_color(self):
+        msg = QtWidgets.QMessageBox()
+        msg.setWindowTitle(self.titulo)
+        msg.setText(self.texto)
+        #msg.setStyleSheet(f"background-color: rgb({self.cor_jan[0]}, {self.cor_jan[1]}, {self.cor_jan[2]});")
+        msg.setStyleSheet("QPushButton"+'{'+f"background-color: rgb({self.cor_btt[0]}, {self.cor_btt[1]}, {self.cor_btt[2]});"+""}")
+        msg.setStyleSheet("QMessageBox{background-color: lightblue;}")
+        msg.setIcon(QtWidgets.QMessageBox.Warning)
+        x = msg.exec_()
 
 #CONEXAO COM O BANCO DE DADOS
 class conexao():
@@ -42,10 +62,10 @@ class conexao():
         consulta_fo = consulta.fetchone()
         return consulta_fo
     
-    def call_proc_5(self, par1, par2, par3, par4, par5):
+    def call_proc_7(self, par1, par2, par3, par4, par5, par6, par7):
         cursor = self.conn.cursor()
         #codigo = cursor.callproc(self.comando, [par1, par2, par3, par4, par5])
-        cursor.callproc('AA_MVSIS_ADDREMOVECLIENT', ('A', 1, 31550, 175, 'ssn'))
+        cursor.callproc('AA_MVSIS_ADDREMOVECLIENTD', (par1, par2, par3, par4, par5, par6, par7))
         cursor.close()
         self.conn.close()
 
@@ -200,6 +220,7 @@ def checar_spool_f():
 
     uitela.fechar_btt.clicked.connect(salvar_spool_f)
     uitela.fechar_btt.clicked.connect(tela.close)
+    uitela.x_btt.clicked.connect(salvar_spool_f)
 
 #TESTANDO CONEXÃO COM O BANCO
 #print(conexao("SELECT matricula FROM PCEMPR WHERE ROWNUM < 2").fetchall())
@@ -223,11 +244,28 @@ def atualizar_ln_f():
             lineedit.setStyleSheet("Background color: rgb(255, 255, 255);")
             lineedit.setReadOnly(True)
 
+    def atualizar_cnpj_f(campo1, campo2, tabela, cod, lineedit):
+        consulta = []
+        if cod.isnumeric():
+            consulta = conexao(f"""SELECT {campo1}, {campo2} FROM {tabela} WHERE {campo1} = {str(cod)}""").fetchone()
+            if consulta == None:
+                consulta = []
+
+        if len(consulta) > 0:
+            lineedit.setText(consulta[1])
+            lineedit.setStyleSheet("Background-color: rgb(190, 190, 190);")
+            lineedit.setReadOnly(True)
+
+        else:
+            lineedit.setText('')
+            lineedit.setStyleSheet("Background color: rgb(255, 255, 255);")
+            lineedit.setReadOnly(True)
+
     uitela.rca_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rca_ln.text(), uitela.rca_nome_ln))
     uitela.rcasub_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rcasub_ln.text(), uitela.rcasub_nomeln))
     uitela.codcli_ln.editingFinished.connect(lambda: atualizar_f('CODCLI', 'CLIENTE', 'PCCLIENT', uitela.codcli_ln.text(), uitela.cliente_ln))
     #PESQUISANDO POR CNPJ
-    #uitela.cnpjcli_ln.editingFinished.connect(lambda: atualizar_f('CGCENT', 'CLIENTE', 'PCCLIENT', uitela.cnpjcli_ln.text().replace('/', '').replace('-', '').replace('.', ''), uitela.cliente_ln))
+    uitela.cnpjcli_ln.editingFinished.connect(lambda: atualizar_cnpj_f('CGCENT', 'CLIENTE', 'PCCLIENT', uitela.cnpjcli_ln.text().replace('/', '').replace('-', '').replace('.', ''), uitela.cliente_ln))
 
     if uitela.rcasub_ln.text() != None:
         if uitela.rcasub_ln.text().isnumeric():
@@ -245,57 +283,44 @@ def executar_procedure_f():
     campos_list = [uitela.rca1_302_cbox.isChecked(), uitela.rca2_302_cbox.isChecked(), uitela.rca3_302_cbox.isChecked()]
     
     if uitela.add_rbtt.isChecked():
-        acao = 'a'
+        acao = 'A'
 
     else:
-        acao = 'r'
+        acao = 'R'
 
     if uitela.codcli_rbtt.isChecked():
-        validacao_cli = 'cod'
+        validacao_cli = 'COD'
         codcli = uitela.codcli_ln.text()
 
     else:
-        validacao_cli = 'cnpj'
+        validacao_cli = 'CNPJ'
         codcli = uitela.cnpjcli_ln.text()
 
     if uitela.util_par_cbox.isChecked():
-        par = 's'
+        par = 'S'
 
     else:
-        par = 'n'
+        par = 'N'
 
     for i in campos_list:
         if i == True:
-            campos += 's'
+            campos += 'S'
 
         else:
-            campos += 'n'
+            campos += 'N'
 
     if '' not in (uitela.rca_nome_ln.text(), uitela.rcasub_nomeln.text(), uitela.cliente_ln.text()):
         try:
-           #conexao(f"""BEGIN AA_MVSIS_ADDREMOVECLIENT('{acao}', {rca1}, {codcli}, {rca_sub}, '{campos}'); END;""").insert_update()
-            #conexao('AA_MVSIS_ADDREMOVECLIENT').call_proc_5(acao, rca1, codcli, rca_sub, campos)
-            #conexao(f"""INSERT INTO PCUSURCLI(CODUSUR, CoDCLI) VALUES ({int(rca1)}, {int(codcli)})""").insert_update()
-           conexao('teste').call_proc_5('a', 1, 17088, 175, 'ssn')
+           conexao('procedure').call_proc_7(acao, rca1, codcli, rca_sub, campos, par, validacao_cli)
            print('CLIENTE ADICIONADO COM SUCESSO')
-            #conexao("").call_proc_5()
-            #with open("conexaobd.txt", 'r') as conexaobd:
-            #    conn_linhas = conexaobd.readlines()
-            #    senhabd = conn_linhas[0].replace('\n', '')
-            #    aliasbd = conn_linhas[1].replace('\n', '')
-            #    usuariobd = conn_linhas[2].replace('\n', '')
-
-            #with cx_Oracle.connect(user=usuariobd, password=senhabd, dsn=aliasbd) as conexao:
-            #    cursor = conexao.cursor()
-            #    texto = 'AA_MVSIS_ADDREMOVECLIENT'
-            #    cursor.callproc('aa_mvsis_addremoveclient', ['a', 1, 17088, 175, 'ssn'])
-            #    #cursor.close()
-            #    conexao.close()
+           mensagem = 'Cliente adicionado com sucesso'
+           mess_box('SUCESSO', mensagem, (0, 255, 0), (255, 0, 0))
             
         except Exception as erro:
             print('Um erro ocorreu: ', erro)
+            mensagem = 'Um erro ocorreu: '+str(erro)
+            mess_box('ERRO', mensagem, (0, 255, 0), (255, 0, 0))
          
-
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     #TELA PRINCIPAL
