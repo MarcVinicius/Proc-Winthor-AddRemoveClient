@@ -21,23 +21,22 @@ with open("conexaobd.txt", 'r') as conexaobd:
 
 #TELA DE MENSAGENS(MESSAGE BOX)
 class mess_box:
-    def __init__(self, titulo, texto, cor_jan, cor_btt, icon):
+    def __init__(self, titulo, texto, cor_btt):
         self.titulo = titulo
         self.texto = texto
-        self.cor_jan = cor_jan#(R, G, B)
         self.cor_btt = cor_btt
-        self.icon = icon
         self.set_color()
 
     def set_color(self):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle(self.titulo)
         msg.setText(self.texto)
-        #msg.setStyleSheet(f"background-color: rgb({self.cor_jan[0]}, {self.cor_jan[1]}, {self.cor_jan[2]});")
-        #msg.setStyleSheet("QPushButton"+'{'+f"background-color: rgb({self.cor_btt[0]}, {self.cor_btt[1]}, {self.cor_btt[2]});"+"}\n")
         msg.setStyleSheet("QMessageBox{background-color: lightblue;}\n"
         "QPushButton"+'{'+f"background-color: rgb({self.cor_btt[0]}, {self.cor_btt[1]}, {self.cor_btt[2]});"+"}")
-        msg.setIcon(QtWidgets.QMessageBox.self.icon)
+        if self.titulo == 'ERRO':
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+        elif self.titulo == 'SUCESSO':
+            msg.setIcon(QtWidgets.QMessageBox.Information)
         x = msg.exec_()
 
 #CONEXAO COM O BANCO DE DADOS
@@ -314,14 +313,18 @@ def executar_procedure_f():
     if '' not in (uitela.rca_nome_ln.text(), uitela.rcasub_nomeln.text(), uitela.cliente_ln.text()):
         try:
            conexao('procedure').call_proc_7(acao, rca1, codcli, rca_sub, campos, par, validacao_cli)
-           print('CLIENTE ADICIONADO COM SUCESSO')
-           mensagem = 'Cliente adicionado com sucesso'
-           mess_box('SUCESSO', mensagem, (0, 255, 0), (255, 0, 0))
+           
+           acao_t = '' #TEXTO MUDA CASO FOR ADICIONAR OU REMOVER
+           
+           acao_t = 'adicionado' if acao == 'A' else 'Removido'
+
+           mensagem = f'Cliente {acao_t} com sucesso'
+           mess_box('SUCESSO', mensagem, (0, 255, 0))
             
         except Exception as erro:
             print('Um erro ocorreu: ', erro)
             mensagem = 'Um erro ocorreu: '+str(erro)
-            mess_box('ERRO', mensagem, (0, 255, 0), (255, 0, 0))
+            mess_box('ERRO', mensagem, (255, 0, 0))
          
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
