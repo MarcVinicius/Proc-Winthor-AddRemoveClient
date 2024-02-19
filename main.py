@@ -21,11 +21,12 @@ with open("conexaobd.txt", 'r') as conexaobd:
 
 #TELA DE MENSAGENS(MESSAGE BOX)
 class mess_box:
-    def __init__(self, titulo, texto, cor_jan, cor_btt):
+    def __init__(self, titulo, texto, cor_jan, cor_btt, icon):
         self.titulo = titulo
         self.texto = texto
         self.cor_jan = cor_jan#(R, G, B)
         self.cor_btt = cor_btt
+        self.icon = icon
         self.set_color()
 
     def set_color(self):
@@ -33,9 +34,10 @@ class mess_box:
         msg.setWindowTitle(self.titulo)
         msg.setText(self.texto)
         #msg.setStyleSheet(f"background-color: rgb({self.cor_jan[0]}, {self.cor_jan[1]}, {self.cor_jan[2]});")
-        msg.setStyleSheet("QPushButton"+'{'+f"background-color: rgb({self.cor_btt[0]}, {self.cor_btt[1]}, {self.cor_btt[2]});"+""}")
-        msg.setStyleSheet("QMessageBox{background-color: lightblue;}")
-        msg.setIcon(QtWidgets.QMessageBox.Warning)
+        #msg.setStyleSheet("QPushButton"+'{'+f"background-color: rgb({self.cor_btt[0]}, {self.cor_btt[1]}, {self.cor_btt[2]});"+"}\n")
+        msg.setStyleSheet("QMessageBox{background-color: lightblue;}\n"
+        "QPushButton"+'{'+f"background-color: rgb({self.cor_btt[0]}, {self.cor_btt[1]}, {self.cor_btt[2]});"+"}")
+        msg.setIcon(QtWidgets.QMessageBox.self.icon)
         x = msg.exec_()
 
 #CONEXAO COM O BANCO DE DADOS
