@@ -6,18 +6,26 @@ import cx_Oracle
 import sys
 import os
 
-#Classes telas
+#CLASSES TELAS
 class tela_princ(QtWidgets.QApplication, QtWidgets.QWidget, Ui_tela):
     def __init__(self):
         super().__init__()
         self.setup(self)
 
-#PARAMETROS PARA CONEXAO COM O BANCO
-with open("conexaobd.txt", 'r') as conexaobd:
-    conn_linhas = conexaobd.readlines()
-    senhabd = conn_linhas[0].replace('\n', '')
-    aliasbd = conn_linhas[1].replace('\n', '')
-    usuariobd = conn_linhas[2].replace('\n', '')
+#PARAMETROS PARA CONEXAO COM O BANCO, BANCO DE TESTE, DESCARTADA POIS FOI USADA PARA TESTES
+#with open("conexaobd.txt", 'r') as conexaobd:
+#    conn_linhas = conexaobd.readlines()
+#    senhabd = conn_linhas[0].replace('\n', '')
+#    aliasbd = conn_linhas[1].replace('\n', '')
+#    usuariobd = conn_linhas[2].replace('\n', '')
+
+#PEGANDO OS ARGUMENTOS PASSADOS PELA ROTINA
+aplicacao = sys.argv[0]
+usuariowt = sys.argv[1]
+senhabd = sys.argv[2]
+aliasbd = sys.argv[3]
+usuariobd = sys.argv[4]
+codrotina = sys.argv[5]
 
 #TELA DE MENSAGENS(MESSAGE BOX)
 class mess_box:
@@ -70,6 +78,9 @@ class conexao():
         cursor.close()
         self.conn.close()
 
+#VALIDANDO DATA PARA LICENCA DA ROTINA
+        
+data = conexao("""SELECT CASE WHEN TRUNC(SYSDATE) <= '30/JUN/2024' THEN 'SIM' ELSE 'NAO' END DATA FROM DUAL """).fetchone()
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -82,12 +93,14 @@ def criar_spool_f():
     rca3 = 'n'
     par = 'n'
 
-    with open("C:\spoolmain\conf.ini", "w") as arquivo:
+    #C:\spoolmain\conf.ini <- caminho antigo, usado nos testes
+
+    with open(f"C:\WinThor\Spool\{codrotina}.ini", "w") as arquivo:
         arquivo.write(addrem+"\n"+codcnpj+"\n"+rcasub+"\n"+rca1+"\n"+rca2+"\n"+rca3+"\n"+par)
 
 #CARREGAR CONFIGURAÇÕES JÁ SALVAS DO SPOOL
 def carregar_spool_f():
-    with open(r"C:\spoolmain\conf.ini", "r") as arquivo:
+    with open(rf"C:\WinThor\Spool\{codrotina}.ini", "r") as arquivo:
         #CARREGANDO VARIAVEIS DO ARQUIVO SPOOL
         conff = arquivo.readlines()
         addrem = conff[0].replace('\n', '')
@@ -203,12 +216,12 @@ def salvar_spool_f():
     else:
         par = 'n'
 
-    with open("c:\spoolmain\conf.ini", "w") as arquivo:
+    with open(f"C:\WinThor\Spool\{codrotina}.ini", "w") as arquivo:
         arquivo.write(addrem+"\n"+codcnpj+"\n"+rcasub+"\n"+rca1+"\n"+rca2+"\n"+rca3+"\n"+par)
         
 def checar_spool_f():
     #pasta =
-    arq = r"c:\spoolmain\conf.ini"
+    arq = rf"C:\WinThor\Spool\{codrotina}.ini"
 
     #pastaexiste
     arqexiste = os.path.exists(arq)
@@ -333,6 +346,21 @@ if __name__ == "__main__":
     uitela = Ui_tela()
     uitela.setupUi(tela)
     tela.show()
+    #validando licenca da rotina
+    if data[0] == 'NAO':
+        uitela.rotina_lb.setText('Rotina Expirada')
+        mensagem = 'Licença da rotina expirada, contate o administrador do sistema'
+        mess_box('ERRO DE LICENÇA', mensagem, (255, 0, 0))
+        uitela.wid_botoes.setEnabled(False)
+        uitela.twid_tabela.setEnabled(False)
+    
+    elif data[0] == 'SIM':
+        nomerotina = conexao(f"""SELECT NOMEROTINA FROM PCROTINA WHERE CODIGO = {int(codrotina)}""").fetchone()
+        if nomerotina != None:
+            uitela.rotina_lb.setText(str(codrotina)+ ' - ' +nomerotina[0])
+        uitela.wid_botoes.setEnabled(True)
+        uitela.twid_tabela.setEnabled(True)
+
     #FUNCOES
     checar_spool_f()
     atualizar_ln_f()
