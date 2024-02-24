@@ -13,19 +13,19 @@ class tela_princ(QtWidgets.QApplication, QtWidgets.QWidget, Ui_tela):
         self.setup(self)
 
 #PARAMETROS PARA CONEXAO COM O BANCO, BANCO DE TESTE, DESCARTADA POIS FOI USADA PARA TESTES
-#with open("conexaobd.txt", 'r') as conexaobd:
-#    conn_linhas = conexaobd.readlines()
-#    senhabd = conn_linhas[0].replace('\n', '')
-#    aliasbd = conn_linhas[1].replace('\n', '')
-#    usuariobd = conn_linhas[2].replace('\n', '')
+with open("conexaobd.txt", 'r') as conexaobd:
+    conn_linhas = conexaobd.readlines()
+    senhabd = conn_linhas[0].replace('\n', '')
+    aliasbd = conn_linhas[1].replace('\n', '')
+    usuariobd = conn_linhas[2].replace('\n', '')
 
 #PEGANDO OS ARGUMENTOS PASSADOS PELA ROTINA
-aplicacao = sys.argv[0]
+"""aplicacao = sys.argv[0]
 usuariowt = sys.argv[1]
 senhabd = sys.argv[2]
 aliasbd = sys.argv[3]
 usuariobd = sys.argv[4]
-codrotina = sys.argv[5]
+codrotina = sys.argv[5]"""
 
 #TELA DE MENSAGENS(MESSAGE BOX)
 class mess_box:
@@ -80,7 +80,10 @@ class conexao():
 
 #VALIDANDO DATA PARA LICENCA DA ROTINA
         
-data = conexao("""SELECT CASE WHEN TRUNC(SYSDATE) <= '30/JUN/2024' THEN 'SIM' ELSE 'NAO' END DATA FROM DUAL """).fetchone()
+#data = conexao("""SELECT CASE WHEN TRUNC(SYSDATE) <= '30/JUN/2024' THEN 'SIM' ELSE 'NAO' END DATA FROM DUAL """).fetchone()
+
+data = ('SIM')
+codrotina = 530
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -112,26 +115,23 @@ def carregar_spool_f():
         par = conff[6].replace('\n', '')
 
         #CHECANDO SE VARIAVEIS SAO DO TIPO CORRETO
-        if addrem not in ('add', 'rem'):
-            addrem = 'add'
+        addrem = 'add' if addrem not in ('add', 'rem') else addrem
+        
+        codcnpj = 'cod' if codcnpj not in ('cod', 'cnpj') else codcnpj
 
-        if codcnpj not in ('cod', 'cnpj'):
-            codcnpj = 'cod'
+        if rcasub.isnumeric():
+            rcasub = '1' if int(rcasub) not in range(1, 9999999999999) else rcasub
 
-        if int(rcasub) not in range(1, 9999999999999):
+        else:
             rcasub = '1'
 
-        if rca1 not in ('s', 'n'):
-            rca1 = 's'
+        rca1 = 's' if rca1 not in ('s', 'n') else rca1
 
-        if rca2 not in ('s', 'n'):
-            rca2 = 's'
+        rca2 = 's' if rca2 not in ('s', 'n') else rca2
+        
+        rca3 = 'n' if rca3 not in ('s', 'n') else rca3
 
-        if rca3 not in ('s', 'n'):
-            rca3 = 'n'
-
-        if par not in ('s', 'n'):
-            par = 'n'
+        par = 'n' if par not in ('s', 'n') else par
         
         #SETANDO VARIEDADES NA TELA
         #ACAO, SE VAI SER ADICIONAR OU REMOVER
@@ -261,7 +261,7 @@ def atualizar_ln_f():
     def atualizar_cnpj_f(campo1, campo2, tabela, cod, lineedit):
         consulta = []
         if cod.isnumeric():
-            consulta = conexao(f"""SELECT {campo1}, {campo2} FROM {tabela} WHERE {campo1} = {str(cod)}""").fetchone()
+            consulta = conexao(f"""SELECT {campo1}, {campo2} FROM {tabela} WHERE REPLACE(REPLACE(REPLACE({campo1}, '.', ''), '/', ''), '-', '') = TO_CHAR({str(cod)})""").fetchone()
             if consulta == None:
                 consulta = []
 
@@ -273,7 +273,7 @@ def atualizar_ln_f():
         else:
             lineedit.setText('')
             lineedit.setStyleSheet("Background color: rgb(255, 255, 255);")
-            lineedit.setReadOnly(True)
+            lineedit.setReadOnly(False)
 
     uitela.rca_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rca_ln.text(), uitela.rca_nome_ln))
     uitela.rcasub_ln.editingFinished.connect(lambda: atualizar_f('CODUSUR', 'NOME', 'PCUSUARI', uitela.rcasub_ln.text(), uitela.rcasub_nomeln))
