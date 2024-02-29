@@ -102,15 +102,15 @@ BEGIN
             END IF;
         END LOOP;
 
-        IF NVL((LENGTH(TRIM(TRANSLATE(vCAMPOOBS, '0123456789-',' ')))), 1) = 0 THEN
+        IF NVL((LENGTH(TRIM(TRANSLATE(vCAMPOOBS, '0123456789-',' ')))), 1) = 1 THEN
             IF vTEM_ = 1 THEN
-                IF SUBSTR(vCAMPOOBS, 4, 4) = '-' AND
+                IF SUBSTR(vCAMPOOBS, 4, 1) = '-' AND
                 vCONTADOR_ = 1 THEN
                     SELECT CODUSUR INTO vCODUSURPAR
                     FROM PCUSUARI WHERE CODUSUR = TO_NUMBER(SUBSTR(vCAMPOOBS, 1, 3));
 
                     SELECT CODUSUR INTO vCODUSURPAR2
-                    FROM PCUSUARI WHERE CODUSUR = TO_NUMBER(SUBSTR(vCAMPOOBS, 5, 7));
+                    FROM PCUSUARI WHERE CODUSUR = TO_NUMBER(SUBSTR(vCAMPOOBS, 5, 3));
 
                 END IF;
 

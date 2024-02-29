@@ -82,7 +82,7 @@ class conexao():
         
 #data = conexao("""SELECT CASE WHEN TRUNC(SYSDATE) <= '30/JUN/2024' THEN 'SIM' ELSE 'NAO' END DATA FROM DUAL """).fetchone()
 
-data = ('SIM')
+data = ['SIM']
 codrotina = 530
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
@@ -358,6 +358,7 @@ if __name__ == "__main__":
         nomerotina = conexao(f"""SELECT NOMEROTINA FROM PCROTINA WHERE CODIGO = {int(codrotina)}""").fetchone()
         if nomerotina != None:
             uitela.rotina_lb.setText(str(codrotina)+ ' - ' +nomerotina[0])
+        uitela.rotina_lb.setText('9811 - Adicionar e Remover Cliente')
         uitela.wid_botoes.setEnabled(True)
         uitela.twid_tabela.setEnabled(True)
 
