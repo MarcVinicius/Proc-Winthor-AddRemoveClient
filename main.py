@@ -13,19 +13,19 @@ class tela_princ(QtWidgets.QApplication, QtWidgets.QWidget, Ui_tela):
         self.setup(self)
 
 #PARAMETROS PARA CONEXAO COM O BANCO, BANCO DE TESTE, DESCARTADA POIS FOI USADA PARA TESTES
-with open("conexaobd.txt", 'r') as conexaobd:
-    conn_linhas = conexaobd.readlines()
-    senhabd = conn_linhas[0].replace('\n', '')
-    aliasbd = conn_linhas[1].replace('\n', '')
-    usuariobd = conn_linhas[2].replace('\n', '')
+#with open("conexaobd.txt", 'r') as conexaobd:
+#    conn_linhas = conexaobd.readlines()
+#    senhabd = conn_linhas[0].replace('\n', '')
+#    aliasbd = conn_linhas[1].replace('\n', '')
+#    usuariobd = conn_linhas[2].replace('\n', '')
 
 #PEGANDO OS ARGUMENTOS PASSADOS PELA ROTINA
-"""aplicacao = sys.argv[0]
+aplicacao = sys.argv[0]
 usuariowt = sys.argv[1]
 senhabd = sys.argv[2]
 aliasbd = sys.argv[3]
 usuariobd = sys.argv[4]
-codrotina = sys.argv[5]"""
+codrotina = sys.argv[5]
 
 #TELA DE MENSAGENS(MESSAGE BOX)
 class mess_box:
@@ -80,10 +80,11 @@ class conexao():
 
 #VALIDANDO DATA PARA LICENCA DA ROTINA
         
-#data = conexao("""SELECT CASE WHEN TRUNC(SYSDATE) <= '30/JUN/2024' THEN 'SIM' ELSE 'NAO' END DATA FROM DUAL """).fetchone()
+data = conexao("""SELECT CASE WHEN TRUNC(SYSDATE) <= '30/JUN/2024' THEN 'SIM' ELSE 'NAO' END DATA FROM DUAL """).fetchone()
 
-data = ['SIM']
-codrotina = 530
+#DATA E CODROTINA SETADAS MANUALMENTE PARA TESTES
+#data = ['SIM']
+#codrotina = 530
 
 #=w=w=w=w=w=w=w=wSPOOL=w=w=w=w=w=w=w=w
 #CRIAR ARQUIVO DE CONFIGURACAO AO ABRIR ROTINA PELA PRIMEIRA VEZ
@@ -235,9 +236,6 @@ def checar_spool_f():
     uitela.fechar_btt.clicked.connect(salvar_spool_f)
     uitela.fechar_btt.clicked.connect(tela.close)
     uitela.x_btt.clicked.connect(salvar_spool_f)
-
-#TESTANDO CONEXÃO COM O BANCO
-#print(conexao("SELECT matricula FROM PCEMPR WHERE ROWNUM < 2").fetchall())
     
 #ATUALIZANDO DADOS DA LINE EDIT
 def atualizar_ln_f():
